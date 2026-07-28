@@ -2,78 +2,16 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Voice Support Dialog Generator</title>
 
-<style>
+ilos.css">
 
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f8;
-    margin:0;
-    padding:20px;
-}
-
-.container{
-    max-width:1000px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0px 2px 10px rgba(0,0,0,.1);
-}
-
-h1{
-    text-align:center;
-}
-
-label{
-    display:block;
-    margin-top:15px;
-    font-weight:bold;
-}
-
-select,input,textarea{
-    width:100%;
-    padding:10px;
-    margin-top:5px;
-    border:1px solid #ccc;
-    border-radius:5px;
-    box-sizing:border-box;
-}
-
-button{
-    margin-top:15px;
-    padding:10px 15px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-}
-
-.btn{
-    background:#0078d4;
-    color:white;
-}
-
-.btn-secondary{
-    background:#666;
-    color:white;
-}
-
-textarea{
-    height:300px;
-}
-
-#camposDinamicos{
-    margin-top:20px;
-}
-
-</style>
-
-"></script>
-requerimientos.js
+<script src="incidentes.js"></script>
+requerimientos.js"></script>
 
 </head>
 
@@ -83,65 +21,32 @@ requerimientos.js
 
 <h1>Voice Support Dialog Generator</h1>
 
-<button class="btn-secondary" onclick="retroceder()">
-⬅ Atrás
-</button>
-
 <label>Tipo de Caso</label>
 
 <select id="tipo" onchange="cargarAcciones()">
-
-<option value="">Seleccione...</option>
-
-<option value="incidente">
-Incidente
-</option>
-
-<option value="requerimiento">
-Requerimiento
-</option>
-
+    <option value="">Seleccione...</option>
+    <option value="incidente">Incidente</option>
+    <option value="requerimiento">Requerimiento</option>
 </select>
 
 <label>Actividad</label>
 
 <select id="accion" onchange="mostrarCampos()">
-
-<option value="">
-Seleccione...
-</option>
-
+    <option value="">Seleccione...</option>
 </select>
 
-<div id="camposDinamicos">
-
-</div>
+<div id="camposDinamicos"></div>
 
 <label>Idioma</label>
 
 <select id="idioma">
-
-<option value="es">
-Español
-</option>
-
-<option value="pt">
-Português
-</option>
-
-<option value="en">
-English
-</option>
-
+    <option value="es">Español</option>
+    <option value="pt">Português</option>
+    <option value="en">English</option>
 </select>
 
-<button class="btn" onclick="generar()">
-Generar
-</button>
-
-<button class="btn" onclick="copiarTexto()">
-Copiar
-</button>
+<button onclick="generar()">Generar</button>
+<button onclick="copiarTexto()">Copiar</button>
 
 <label>Resultado</label>
 
@@ -151,156 +56,130 @@ Copiar
 
 <script>
 
-let historial=[];
+function cargarAcciones() {
 
-function cargarAcciones(){
+    let tipo = document.getElementById("tipo").value;
 
-let tipo =
-document.getElementById("tipo").value;
+    let data =
+        tipo === "incidente"
+        ? INCIDENTES
+        : REQUERIMIENTOS;
 
-let accionSelect =
-document.getElementById("accion");
+    let accion = document.getElementById("accion");
 
-accionSelect.innerHTML =
-'<option value="">Seleccione...</option>';
+    accion.innerHTML =
+        '<option value="">Seleccione...</option>';
 
-let data =
-tipo === "incidente"
-? INCIDENTES
-: REQUERIMIENTOS;
+    for (let key in data) {
 
-for(let key in data){
+        let op = document.createElement("option");
 
-let option =
-document.createElement("option");
+        op.value = key;
+        op.textContent = data[key].nombre;
 
-option.value = key;
+        accion.appendChild(op);
+    }
 
-option.textContent =
-data[key].nombre;
-
-accionSelect.appendChild(option);
-
+    document.getElementById("camposDinamicos").innerHTML = "";
 }
 
-document.getElementById("camposDinamicos").innerHTML="";
+function mostrarCampos() {
+
+    let tipo = document.getElementById("tipo").value;
+
+    let accion = document.getElementById("accion").value;
+
+    if (!accion) return;
+
+    let data =
+        tipo === "incidente"
+        ? INCIDENTES
+        : REQUERIMIENTOS;
+
+    let html = "";
+
+    data[accion].campos.forEach(campo => {
+
+        html += `
+            <label>${formatearNombreCampo(campo)}</label>
+            <input type="text" id="${campo}">
+        `;
+    });
+
+    document.getElementById("camposDinamicos").innerHTML = html;
 }
 
-function mostrarCampos(){
+function generar() {
 
-let tipo =
-document.getElementById("tipo").value;
+    let tipo = document.getElementById("tipo").value;
 
-let accion =
-document.getElementById("accion").value;
+    let accion = document.getElementById("accion").value;
 
-if(!accion) return;
+    let idioma = document.getElementById("idioma").value;
 
-let data =
-tipo === "incidente"
-? INCIDENTES
-: REQUERIMIENTOS;
+    if (!tipo || !accion) {
 
-let campos =
-data[accion].campos;
+        alert("Seleccione Tipo de Caso y Actividad");
 
-let html = "";
+        return;
+    }
 
-campos.forEach(campo => {
+    let data =
+        tipo === "incidente"
+        ? INCIDENTES
+        : REQUERIMIENTOS;
 
-html += `
-<label>${capitalizar(campo)}</label>
-<input type="text" id="${campo}">
-`;
+    let texto = data[accion].idiomas[idioma];
 
-});
+    data[accion].campos.forEach(campo => {
 
-document.getElementById("camposDinamicos")
-.innerHTML = html;
+        let valor =
+            document.getElementById(campo).value;
 
+        texto =
+            texto.replaceAll(
+                `{${campo}}`,
+                valor
+            );
+
+    });
+
+    document.getElementById("resultado").value =
+        texto;
 }
 
-function generar(){
+function copiarTexto() {
 
-let tipo =
-document.getElementById("tipo").value;
+    let texto =
+        document.getElementById("resultado");
 
-let accion =
-document.getElementById("accion").value;
+    texto.select();
 
-let idioma =
-document.getElementById("idioma").value;
+    navigator.clipboard.writeText(
+        texto.value
+    );
 
-if(!tipo || !accion){
-
-alert("Complete Tipo y Actividad");
-
-return;
-
+    alert("Mensaje copiado");
 }
 
-let data =
-tipo === "incidente"
-? INCIDENTES
-: REQUERIMIENTOS;
+function formatearNombreCampo(campo) {
 
-let plantilla =
-data[accion].idiomas[idioma];
+    const nombres = {
 
-let campos =
-data[accion].campos;
+        nombre: "Nombre destinatario",
+        cs: "Número de CS",
+        inicio: "Fecha / Hora Inicio",
+        fin: "Fecha / Hora Fin",
+        problema: "Problema",
+        resolucion: "Resolución"
 
-campos.forEach(campo => {
+    };
 
-let valor =
-document.getElementById(campo).value;
-
-let regex =
-new RegExp(`\\{${campo}\\}`,'g');
-
-plantilla =
-plantilla.replace(regex,valor);
-
-});
-
-document.getElementById("resultado")
-.value = plantilla;
-
-historial.push({
-tipo,
-accion,
-idioma
-});
-
-}
-
-function copiarTexto(){
-
-let texto =
-document.getElementById("resultado");
-
-texto.select();
-
-navigator.clipboard.writeText(texto.value);
-
-alert("Mensaje copiado");
-
-}
-
-function retroceder(){
-
-history.back();
-
-}
-
-function capitalizar(texto){
-
-return texto.charAt(0).toUpperCase()
-+ texto.slice(1);
-
+    return nombres[campo] || campo;
 }
 
 </script>
 
 </body>
+
 </html>
